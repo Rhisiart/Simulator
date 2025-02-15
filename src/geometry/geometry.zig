@@ -33,10 +33,11 @@ const Cell = struct {
     }
 
     pub fn addSegment(self: *Cell, x: u8, segment: Segment) !void {
+        std.debug.print("Inserting segment at x = {d}\n", .{x});
+        std.debug.print("Current segment count before insert: {}\n", .{self.segments.count()});
+
         if (self.segments.getPtr(x)) |segments| {
-            std.debug.print("Before append, segment count in cell {d}: {d}\n", .{ self.id, segments.items.len });
             try segments.append(segment);
-            std.debug.print("After append, segment count in cell {d}: {d}\n", .{ self.id, segments.items.len });
         } else {
             var new_segment = ArrayList(Segment).init(self.allocator.*);
             try new_segment.append(segment);
@@ -152,7 +153,7 @@ pub const Geometry = struct {
 
             std.debug.print("------------ x axis {d} ----------------\n", .{x_int});
 
-            for (curr_segments.*.items) |seg| {
+            for (curr_segments.items) |seg| {
                 std.debug.print("start_y = {d} end_y = {d}\n", .{ seg.start_y, seg.end_y });
             }
 
@@ -160,9 +161,9 @@ pub const Geometry = struct {
                 for (curr_segments.items) |segment| {
                     try self.createNewCell(x_int, segment);
                 }
-            } //else {
-            // try self.updateCells(curr_segments, x_int);
-            //}
+            } else {
+                try self.updateCells(curr_segments, x_int);
+            }
         }
 
         for (self.cells.items) |cell| {
@@ -170,7 +171,7 @@ pub const Geometry = struct {
         }
     }
 
-    fn getFreeSegments(self: *Geometry, x: u8, grid_height: u8) Allocator.Error!*ArrayList(Segment) {
+    fn getFreeSegments(self: *Geometry, x: u8, grid_height: u8) Allocator.Error!ArrayList(Segment) {
         var segments = ArrayList(Segment).init(self.allocator.*);
         var in_free_segment: bool = false;
         var start_y: u8 = 0;
@@ -192,16 +193,17 @@ pub const Geometry = struct {
             }
         }
 
-        return &segments;
+        return segments;
     }
 
     fn createNewCell(self: *Geometry, x: u8, segment: Segment) !void {
         std.debug.print("Creating a Cell {d}...\n", .{self.next_cell_id});
-        var cell = try Cell.init(self.allocator, self.next_cell_id);
+        var cell = try self.allocator.*.create(Cell);
+        cell.* = try Cell.init(self.allocator, self.next_cell_id);
         try cell.addSegment(x, segment);
 
         self.next_cell_id += 1;
-        try self.cells.append(&cell);
+        try self.cells.append(cell);
     }
 
     fn updateCells(
