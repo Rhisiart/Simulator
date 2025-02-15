@@ -28,7 +28,7 @@ pub const Simulator = struct {
 
     pub fn engineLoop(self: Simulator) !void {
         const dt: f64 = 0.1;
-        const fps: u64 = 1;
+        const fps: u64 = 10;
         const frame_time_ns: u64 = time.ns_per_s / fps;
 
         var timer = try time.Timer.start();

@@ -1,6 +1,8 @@
 const std = @import("std");
 
 const agent = @import("agent.zig");
+const obstacle = @import("obstacle.zig");
+const point = @import("point.zig");
 const terminal = @import("terminal.zig");
 
 pub const Environment = struct {
@@ -8,16 +10,28 @@ pub const Environment = struct {
     colls: u8 = 0,
     grid: [][]u8,
     agent: *agent.Agent,
+    obstacles: []obstacle.Obstacle,
 
     pub fn init(allocator: std.mem.Allocator, colls: u8, rows: u8) !Environment {
         const grid = try allocator.alloc([]u8, rows);
         const agt = try allocator.create(agent.Agent);
+        const obs = try createObstacles(allocator);
 
         agt.* = agent.Agent.init(0, 0, 0, 2);
 
-        for (grid) |*row| {
+        for (grid, 0..) |*row, i| {
+            const rowIdx: u8 = @intCast(i);
             row.* = try allocator.alloc(u8, colls);
-            @memset(row.*, '.');
+
+            for (row.*, 0..) |*cell, x| {
+                const collIdx: u8 = @intCast(x);
+                const c = getCell(
+                    obs,
+                    point.Point{ .x = collIdx, .y = rowIdx },
+                );
+
+                cell.* = c;
+            }
         }
 
         grid[0][0] = 'A';
@@ -27,6 +41,7 @@ pub const Environment = struct {
             .rows = rows,
             .colls = colls,
             .agent = agt,
+            .obstacles = obs,
         };
     }
 
@@ -76,3 +91,33 @@ pub const Environment = struct {
         terminal.Terminal.modifyText(currPos.x, currPos.y, ".");
     }
 };
+
+fn createObstacles(allocator: std.mem.Allocator) ![]obstacle.Obstacle {
+    const obstacles = try allocator.alloc(obstacle.Obstacle, 2);
+
+    obstacles[0] = obstacle.Obstacle.init(3, 2, point.Point{
+        .x = 6,
+        .y = 2,
+    });
+    obstacles[1] = obstacle.Obstacle.init(1, 1, point.Point{
+        .x = 5,
+        .y = 6,
+    });
+
+    return obstacles;
+}
+
+fn getCell(obstacles: []obstacle.Obstacle, p: point.Point) u8 {
+    var c: u8 = '.';
+
+    for (obstacles) |obs| {
+        const isPart = obs.isPartOfObstacle(p);
+
+        if (isPart) {
+            c = 'x';
+            break;
+        }
+    }
+
+    return c;
+}

@@ -3,12 +3,9 @@ const math = std.math;
 const prng = std.Random.DefaultPrng;
 const assert = std.debug.assert;
 
-const SCALE = 2.0;
+const point = @import("point.zig");
 
-const Coordinate = struct {
-    x: u8,
-    y: u8,
-};
+const SCALE = 2.0;
 
 pub const Agent = struct {
     x: f64 = 0,
@@ -25,7 +22,7 @@ pub const Agent = struct {
         };
     }
 
-    pub fn move(self: *Agent, v: f64, omega: f64, dt: f64, noise: f64) Coordinate {
+    pub fn move(self: *Agent, v: f64, omega: f64, dt: f64, noise: f64) point.Point {
         const rand = self.rnp.random().float(f64) - 0.5;
         const noise_din = noise * rand;
         const noise_theta = noise * rand / 10;
@@ -37,8 +34,8 @@ pub const Agent = struct {
         return self.position();
     }
 
-    pub fn position(self: Agent) Coordinate {
-        return Coordinate{
+    pub fn position(self: Agent) point.Point {
+        return point.Point{
             .x = @intFromFloat(std.math.clamp(self.x * SCALE, 0, 255)),
             .y = @intFromFloat(std.math.clamp(self.y * SCALE, 0, 255)),
         };
