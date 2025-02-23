@@ -6,6 +6,12 @@ const assert = std.debug.assert;
 const point = @import("point.zig");
 
 const SCALE = 2.0;
+const Direction = enum {
+    Left,
+    Right,
+    Up,
+    Down,
+};
 
 pub const Agent = struct {
     x: f64 = 0,
@@ -30,6 +36,25 @@ pub const Agent = struct {
         self.x += (v + noise_din) * math.cos(self.theta) * dt;
         self.y += (v + noise_din) * math.sin(self.theta) * dt;
         self.theta += (omega + noise_theta) * dt;
+
+        return self.position();
+    }
+
+    pub fn lawnMower(self: *Agent, direction: Direction) point.Point {
+        switch (direction) {
+            .Down => {
+                self.y += 1;
+            },
+            .Up => {
+                self.y -= 1;
+            },
+            .Left => {
+                self.x -= 1;
+            },
+            .Right => {
+                self.x += 1;
+            },
+        }
 
         return self.position();
     }
