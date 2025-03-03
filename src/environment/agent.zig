@@ -6,7 +6,7 @@ const assert = std.debug.assert;
 const point = @import("point.zig");
 
 const SCALE = 2.0;
-const Direction = enum {
+pub const Direction = enum {
     Left,
     Right,
     Up,
@@ -18,6 +18,7 @@ pub const Agent = struct {
     y: f64 = 0,
     theta: f64 = 0,
     rnp: prng,
+    direction: Direction,
 
     pub fn init(x: f64, y: f64, theta: f64, seed: u64) Agent {
         return Agent{
@@ -25,6 +26,7 @@ pub const Agent = struct {
             .y = y,
             .theta = theta,
             .rnp = prng.init(seed),
+            .direction = Direction.Up,
         };
     }
 
@@ -41,12 +43,14 @@ pub const Agent = struct {
     }
 
     pub fn lawnMower(self: *Agent, direction: Direction) point.Point {
+        //std.debug.print("Direction to move {}\n", .{direction});
+
         switch (direction) {
             .Down => {
-                self.y += 1;
+                self.y -= 1;
             },
             .Up => {
-                self.y -= 1;
+                self.y += 1;
             },
             .Left => {
                 self.x -= 1;
@@ -56,14 +60,19 @@ pub const Agent = struct {
             },
         }
 
+        self.direction = direction;
         return self.position();
     }
 
     pub fn position(self: Agent) point.Point {
         return point.Point{
-            .x = @intFromFloat(std.math.clamp(self.x * SCALE, 0, 255)),
-            .y = @intFromFloat(std.math.clamp(self.y * SCALE, 0, 255)),
+            .x = @intFromFloat(self.x),
+            .y = @intFromFloat(self.y),
         };
+        //return point.Point{
+        //    .x = @intFromFloat(std.math.clamp(self.x * SCALE, 0, 255)),
+        //    .y = @intFromFloat(std.math.clamp(self.y * SCALE, 0, 255)),
+        //};
     }
 };
 

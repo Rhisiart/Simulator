@@ -58,9 +58,9 @@ pub const Geometry = struct {
             }
         }
 
-        for (self.cells.items) |c| {
-            c.*.printSegments();
-        }
+        //for (self.cells.items) |c| {
+        //    c.*.printSegments();
+        //}
     }
 
     fn getFreeSegments(self: *Geometry, x: u8, grid_height: u8) Allocator.Error!ArrayList(cell.Segment) {
